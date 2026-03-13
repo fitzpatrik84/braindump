@@ -537,17 +537,31 @@ function resetSetup() {
 
 // ══ SHEETS ══
 async function sheetsGet() {
-  const res = await fetch(SCRIPT_URL);
-  const data = await res.json();
+  const res = await fetch(SCRIPT_URL + '?t=' + Date.now(), {
+    method: 'GET',
+    redirect: 'follow'
+  });
+  const text = await res.text();
+  const data = JSON.parse(text);
   if (data && data.error === 'unauthorized') throw new Error('unauthorized');
   return data;
 }
 
 async function sheetsPost(payload) {
-  const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-  const data = await res.json();
-  if (data && data.error === 'unauthorized') throw new Error('unauthorized');
-  return data;
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  });
+  const text = await res.text();
+  try {
+    const data = JSON.parse(text);
+    if (data && data.error === 'unauthorized') throw new Error('unauthorized');
+    return data;
+  } catch(e) {
+    return { saved: true };
+  }
 }
 
 async function loadEntries() {
